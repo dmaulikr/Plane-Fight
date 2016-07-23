@@ -14,6 +14,9 @@
 		700DE31E1D4199360087A007 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 700DE31C1D4199360087A007 /* Main.storyboard */; };
 		700DE3201D4199360087A007 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 700DE31F1D4199360087A007 /* Assets.xcassets */; };
 		700DE3231D4199360087A007 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 700DE3211D4199360087A007 /* LaunchScreen.storyboard */; };
+		700DE32E1D42CB770087A007 /* spark.png in Resources */ = {isa = PBXBuildFile; fileRef = 700DE32D1D42CB770087A007 /* spark.png */; };
+		700DE3301D42CE040087A007 /* EnemyExplosion.sks in Resources */ = {isa = PBXBuildFile; fileRef = 700DE32F1D42CE040087A007 /* EnemyExplosion.sks */; };
+		700DE3321D42CED80087A007 /* PlayerExplosion.sks in Resources */ = {isa = PBXBuildFile; fileRef = 700DE3311D42CED80087A007 /* PlayerExplosion.sks */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -26,6 +29,9 @@
 		700DE31F1D4199360087A007 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		700DE3221D4199360087A007 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		700DE3241D4199360087A007 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		700DE32D1D42CB770087A007 /* spark.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = spark.png; sourceTree = "<group>"; };
+		700DE32F1D42CE040087A007 /* EnemyExplosion.sks */ = {isa = PBXFileReference; lastKnownFileType = file.sks; path = EnemyExplosion.sks; sourceTree = "<group>"; };
+		700DE3311D42CED80087A007 /* PlayerExplosion.sks */ = {isa = PBXFileReference; lastKnownFileType = file.sks; path = PlayerExplosion.sks; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -43,6 +49,7 @@
 			isa = PBXGroup;
 			children = (
 				700DE3131D4199360087A007 /* Plane Fight */,
+				700DE32A1D42CB490087A007 /* Content */,
 				700DE3121D4199360087A007 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -67,6 +74,17 @@
 				700DE3211D4199360087A007 /* LaunchScreen.storyboard */,
 				700DE3241D4199360087A007 /* Info.plist */,
 			);
+			path = "Plane Fight";
+			sourceTree = "<group>";
+		};
+		700DE32A1D42CB490087A007 /* Content */ = {
+			isa = PBXGroup;
+			children = (
+				700DE3311D42CED80087A007 /* PlayerExplosion.sks */,
+				700DE32F1D42CE040087A007 /* EnemyExplosion.sks */,
+				700DE32D1D42CB770087A007 /* spark.png */,
+			);
+			name = Content;
 			path = "Plane Fight";
 			sourceTree = "<group>";
 		};
@@ -130,8 +148,11 @@
 			buildActionMask = 2147483647;
 			files = (
 				700DE3171D4199360087A007 /* GameScene.sks in Resources */,
+				700DE32E1D42CB770087A007 /* spark.png in Resources */,
 				700DE3231D4199360087A007 /* LaunchScreen.storyboard in Resources */,
 				700DE3201D4199360087A007 /* Assets.xcassets in Resources */,
+				700DE3321D42CED80087A007 /* PlayerExplosion.sks in Resources */,
+				700DE3301D42CE040087A007 /* EnemyExplosion.sks in Resources */,
 				700DE31E1D4199360087A007 /* Main.storyboard in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -297,6 +318,7 @@
 				700DE3291D4199360087A007 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
