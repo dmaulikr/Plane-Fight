@@ -29,6 +29,13 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     
     var player: SKSpriteNode!
     
+    var scoreLabel: SKLabelNode!
+    var score = 0 {
+        didSet {
+            scoreLabel.text = "SCORE: \(score)"
+        }
+    }
+    
     var startScreenLogo: SKSpriteNode!
     var gameOverLogo: SKSpriteNode!
     
@@ -39,6 +46,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         createSky()
         createBackground()
         createGround()
+        createScore()
         createLogos()
         
         physicsWorld.gravity = CGVector(dx: 0, dy: 0)
@@ -79,10 +87,16 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         
         if let data = motionManager.accelerometerData {
             if fabs(data.acceleration.x) > 0.1 {
-                player.physicsBody!.applyForce(CGVectorMake(0, -40.0 * CGFloat(data.acceleration.x)))
+                player.physicsBody!.applyForce(CGVectorMake(0, -50.0 * CGFloat(data.acceleration.x)))
             } else {
                  player.physicsBody!.velocity = CGVectorMake(0, 0)
             }
+        }
+        
+        let rand = GKRandomDistribution(lowestValue: 1, highestValue: 100)
+        
+        if rand.nextInt() == 1 {
+            createEnemyBullet()
         }
     }
     
@@ -126,8 +140,10 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             
             if contact.bodyA.node?.name == "playerBullet" {
                 contact.bodyA.node?.removeFromParent()
+                score += 1
             } else if contact.bodyB.node?.name == "playerBullet" {
                 contact.bodyB.node?.removeFromParent()
+                score += 1
             }
         }
     }
@@ -183,7 +199,12 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         
         enemy.runAction(runForever)
         
-        let moveAction = SKAction.moveToX(-enemyTexture.size().width - 10, duration: 10)
+        let moveMaxY = Int(frame.height - enemyTexture.size().height)
+        let moveMinY = Int(enemyTexture.size().height * 2)
+        let moveRand = GKRandomDistribution(lowestValue: moveMinY, highestValue: moveMaxY)
+        let moveYPosition = CGFloat(moveRand.nextInt())
+        
+        let moveAction = SKAction.moveTo(CGPoint(x: -enemyTexture.size().width - 10, y: moveYPosition), duration: 10)
         let moveSequence = SKAction.sequence([moveAction, SKAction.removeFromParent()])
         
         enemy.runAction(moveSequence)
@@ -202,12 +223,13 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     }
     
     func createPlayerBullet() {
-        let playerBullet = SKSpriteNode(color: UIColor.redColor(), size: CGSize(width: 10, height: 10))
+        let playerBulletTexture = SKTexture(imageNamed: "playerBullet")
+        let playerBullet = SKSpriteNode(texture: playerBulletTexture)
         playerBullet.zPosition = 20
         playerBullet.position = CGPoint(x: player.position.x + (player.size.width / 2), y: player.position.y)
         playerBullet.name = "playerBullet"
         
-        playerBullet.physicsBody = SKPhysicsBody(rectangleOfSize: playerBullet.size)
+        playerBullet.physicsBody = SKPhysicsBody(texture: playerBulletTexture, size: playerBulletTexture.size())
         playerBullet.physicsBody!.dynamic = true
         playerBullet.physicsBody!.categoryBitMask = PlayerBulletCategory
         playerBullet.physicsBody!.contactTestBitMask = EnemyCategory
@@ -222,24 +244,28 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     }
     
     func createEnemyBullet() {
+        let enemyBulletTexture = SKTexture(imageNamed: "enemyBullet")
+        
         enumerateChildNodesWithName("enemy") { (node, stop) in
-            let enemyBullet = SKSpriteNode(color: UIColor.greenColor(), size: CGSize(width: 10, height: 10))
-            enemyBullet.zPosition = 15
-            enemyBullet.position = CGPoint(x: node.position.x - (node.frame.size.width / 2), y: node.position.y)
-            enemyBullet.name = "enemyBullet"
-            
-            enemyBullet.physicsBody = SKPhysicsBody(rectangleOfSize: enemyBullet.size)
-            enemyBullet.physicsBody!.dynamic = true
-            enemyBullet.physicsBody!.categoryBitMask = EnemyBulletCategory
-            enemyBullet.physicsBody!.contactTestBitMask = PlayerCategory
-            enemyBullet.physicsBody!.collisionBitMask = 0
-            
-            self.addChild(enemyBullet)
-            
-            let moveAction = SKAction.moveToX(-self.frame.width - enemyBullet.size.width, duration: 5)
-            let moveSequence = SKAction.sequence([moveAction, SKAction.removeFromParent()])
-            
-            enemyBullet.runAction(moveSequence)
+            if node.position.x > self.frame.midX {
+                let enemyBullet = SKSpriteNode(texture: enemyBulletTexture)
+                enemyBullet.zPosition = 15
+                enemyBullet.position = CGPoint(x: node.position.x - (node.frame.size.width / 2), y: node.position.y)
+                enemyBullet.name = "enemyBullet"
+                
+                enemyBullet.physicsBody = SKPhysicsBody(texture: enemyBulletTexture, size: enemyBulletTexture.size())
+                enemyBullet.physicsBody!.dynamic = true
+                enemyBullet.physicsBody!.categoryBitMask = EnemyBulletCategory
+                enemyBullet.physicsBody!.contactTestBitMask = PlayerCategory
+                enemyBullet.physicsBody!.collisionBitMask = 0
+                
+                self.addChild(enemyBullet)
+                
+                let moveAction = SKAction.moveToX(-self.frame.width - enemyBullet.size.width, duration: 5)
+                let moveSequence = SKAction.sequence([moveAction, SKAction.removeFromParent()])
+                
+                enemyBullet.runAction(moveSequence)
+            }
         }
     }
     
@@ -301,6 +327,18 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             
             ground.runAction(moveForever)
         }
+    }
+    
+    func createScore() {
+        scoreLabel = SKLabelNode(fontNamed: "Menlo-Bold")
+        scoreLabel.fontSize = 20
+        
+        scoreLabel.position = CGPoint(x: frame.midX, y: frame.maxY - 20)
+        scoreLabel.horizontalAlignmentMode = .Center
+        scoreLabel.text = "SCORE: 0"
+        scoreLabel.fontColor = UIColor.blackColor()
+        
+        addChild(scoreLabel)
     }
     
     func createLogos() {
