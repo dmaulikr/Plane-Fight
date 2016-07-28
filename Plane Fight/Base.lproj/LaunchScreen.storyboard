@@ -43,8 +43,8 @@
                                         </constraints>
                                         <variation key="default">
                                             <mask key="constraints">
-                                                <exclude reference="wsz-Tf-Amd"/>
                                                 <exclude reference="O6x-ZK-9KO"/>
+                                                <exclude reference="wsz-Tf-Amd"/>
                                             </mask>
                                         </variation>
                                     </imageView>

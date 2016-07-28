@@ -48,6 +48,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         createGround()
         createScore()
         createLogos()
+        createMusic()
         
         physicsWorld.gravity = CGVector(dx: 0, dy: 0)
         physicsWorld.contactDelegate = self
@@ -114,6 +115,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
                 contact.bodyB.node?.removeFromParent()
             }
             
+            let sound = SKAction.playSoundFileNamed("explosion.wav", waitForCompletion: false)
+            runAction(sound)
+            
             gameState = .Dead
             gameOverLogo.alpha = 1
             
@@ -146,6 +150,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
                 contact.bodyB.node?.removeFromParent()
                 score += 1
             }
+            
+            let sound = SKAction.playSoundFileNamed("explosion.wav", waitForCompletion: false)
+            runAction(sound)
         }
     }
     
@@ -353,6 +360,12 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         gameOverLogo.alpha = 0
         gameOverLogo.zPosition = 30
         addChild(gameOverLogo)
+    }
+    
+    func createMusic() {
+        let music = SKAction.playSoundFileNamed("music.m4a", waitForCompletion: true)
+        let musicLoop = SKAction.repeatActionForever(music)
+        runAction(musicLoop)
     }
     
 }
