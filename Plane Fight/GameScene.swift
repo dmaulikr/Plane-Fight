@@ -8,6 +8,7 @@
 
 import SpriteKit
 import GameplayKit
+import CoreMotion
 
 enum GameState {
     case ShowingLogo
@@ -24,22 +25,27 @@ let SceneEdgeCategory    : UInt32 = 0x1 << 5
 
 class GameScene: SKScene, SKPhysicsContactDelegate {
     
+    let motionManager: CMMotionManager = CMMotionManager()
+    
     var player: SKSpriteNode!
     
-    var gameState = GameState.Playing
+    var startScreenLogo: SKSpriteNode!
+    var gameOverLogo: SKSpriteNode!
+    
+    var gameState = GameState.ShowingLogo
     
     override func didMoveToView(view: SKView) {
         createPlayer()
         createSky()
         createBackground()
         createGround()
-        createEnemies()
+        createLogos()
         
         physicsWorld.gravity = CGVector(dx: 0, dy: 0)
         physicsWorld.contactDelegate = self
         
         physicsBody = SKPhysicsBody(edgeLoopFromRect: frame)
-        physicsBody!.dynamic = false
+        physicsBody!.restitution = 0
         physicsBody!.categoryBitMask = SceneEdgeCategory
         physicsBody!.contactTestBitMask = 0
         physicsBody!.collisionBitMask = PlayerCategory
@@ -49,6 +55,13 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         switch gameState {
         case .ShowingLogo:
             gameState = .Playing
+            
+            let fadeOut = SKAction.fadeOutWithDuration(0.5)
+            let fadeOutSequence = SKAction.sequence([fadeOut, SKAction.removeFromParent()])
+            startScreenLogo.runAction(fadeOutSequence)
+            
+            createEnemies()
+            motionManager.startAccelerometerUpdates()
             
         case .Playing:
             createPlayerBullet()
@@ -62,7 +75,15 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     }
    
     override func update(currentTime: CFTimeInterval) {
+        guard player != nil else { return }
         
+        if let data = motionManager.accelerometerData {
+            if fabs(data.acceleration.x) > 0.1 {
+                player.physicsBody!.applyForce(CGVectorMake(0, -40.0 * CGFloat(data.acceleration.x)))
+            } else {
+                 player.physicsBody!.velocity = CGVectorMake(0, 0)
+            }
+        }
     }
     
     func didBeginContact(contact: SKPhysicsContact) {
@@ -77,6 +98,11 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             } else if contact.bodyB.node?.name == "enemyBullet" {
                 contact.bodyB.node?.removeFromParent()
             }
+            
+            gameState = .Dead
+            gameOverLogo.alpha = 1
+            
+            motionManager.stopAccelerometerUpdates()
             
             player.removeFromParent()
             speed = 0
@@ -110,10 +136,12 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         let playerTexture = SKTexture(imageNamed: "player-1")
         player = SKSpriteNode(texture: playerTexture)
         player.zPosition = 10
-        player.position = CGPoint(x: frame.width * 0.1, y: frame.height * 0.66)
+        player.position = CGPoint(x: frame.width * 0.1, y: frame.height * 0.8)
         
         player.physicsBody = SKPhysicsBody(texture: playerTexture, size: playerTexture.size())
         player.physicsBody!.dynamic = true
+        player.physicsBody!.restitution = 0
+        player.physicsBody!.angularVelocity = 0
         player.physicsBody!.categoryBitMask = PlayerCategory
         player.physicsBody!.contactTestBitMask = EnemyCategory | EnemyBulletCategory | GroundCategory
         player.physicsBody!.collisionBitMask = SceneEdgeCategory
@@ -273,6 +301,19 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             
             ground.runAction(moveForever)
         }
+    }
+    
+    func createLogos() {
+        startScreenLogo = SKSpriteNode(imageNamed: "startScreen")
+        startScreenLogo.position = CGPoint(x: frame.midX, y: frame.midY)
+        startScreenLogo.zPosition = 25
+        addChild(startScreenLogo)
+        
+        gameOverLogo = SKSpriteNode(imageNamed: "gameOverScreen")
+        gameOverLogo.position = CGPoint(x: frame.midX, y: frame.midY)
+        gameOverLogo.alpha = 0
+        gameOverLogo.zPosition = 30
+        addChild(gameOverLogo)
     }
     
 }
