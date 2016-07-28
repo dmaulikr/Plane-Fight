@@ -84,6 +84,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
    
     override func update(currentTime: CFTimeInterval) {
         guard player != nil else { return }
+        guard gameState == .Playing else { return }
         
         if let data = motionManager.accelerometerData {
             if fabs(data.acceleration.x) > 0.1 {
