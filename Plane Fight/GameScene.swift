@@ -29,6 +29,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     
     var player: SKSpriteNode!
     
+    var backgroundMusic: SKAudioNode!
+    
     var scoreLabel: SKLabelNode!
     var score = 0 {
         didSet {
@@ -78,7 +80,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         case .Dead:
             let scene = GameScene(fileNamed: "GameScene")!
             scene.scaleMode = .ResizeFill
-            let transition = SKTransition.moveInWithDirection(.Right, duration: 1)
+            let transition = SKTransition.moveInWithDirection(.Right, duration: 0)
             self.view?.presentScene(scene, transition: transition)
         }
     }
@@ -120,6 +122,10 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             
             gameState = .Dead
             gameOverLogo.alpha = 1
+            backgroundMusic.runAction(SKAction.stop())
+            
+            let gameOverSound = SKAction.playSoundFileNamed("gameOver.wav", waitForCompletion: false)
+            runAction(gameOverSound)
             
             motionManager.stopAccelerometerUpdates()
             
@@ -363,9 +369,10 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     }
     
     func createMusic() {
-        let music = SKAction.playSoundFileNamed("music.m4a", waitForCompletion: true)
-        let musicLoop = SKAction.repeatActionForever(music)
-        runAction(musicLoop)
+        if let musicURL = NSBundle.mainBundle().URLForResource("music", withExtension: "m4a") {
+            backgroundMusic = SKAudioNode(URL: musicURL)
+            addChild(backgroundMusic)
+        }
     }
     
 }

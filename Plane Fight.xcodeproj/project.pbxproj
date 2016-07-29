@@ -19,6 +19,7 @@
 		700DE3321D42CED80087A007 /* PlayerExplosion.sks in Resources */ = {isa = PBXBuildFile; fileRef = 700DE3311D42CED80087A007 /* PlayerExplosion.sks */; };
 		700DE3351D4ACCAA0087A007 /* explosion.wav in Resources */ = {isa = PBXBuildFile; fileRef = 700DE3331D4ACCAA0087A007 /* explosion.wav */; };
 		700DE3361D4ACCAA0087A007 /* music.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 700DE3341D4ACCAA0087A007 /* music.m4a */; };
+		700DE3381D4AD68B0087A007 /* gameOver.wav in Resources */ = {isa = PBXBuildFile; fileRef = 700DE3371D4AD68B0087A007 /* gameOver.wav */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -36,6 +37,7 @@
 		700DE3311D42CED80087A007 /* PlayerExplosion.sks */ = {isa = PBXFileReference; lastKnownFileType = file.sks; path = PlayerExplosion.sks; sourceTree = "<group>"; };
 		700DE3331D4ACCAA0087A007 /* explosion.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = explosion.wav; sourceTree = "<group>"; };
 		700DE3341D4ACCAA0087A007 /* music.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = music.m4a; sourceTree = "<group>"; };
+		700DE3371D4AD68B0087A007 /* gameOver.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = gameOver.wav; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -86,6 +88,7 @@
 			children = (
 				700DE3331D4ACCAA0087A007 /* explosion.wav */,
 				700DE3341D4ACCAA0087A007 /* music.m4a */,
+				700DE3371D4AD68B0087A007 /* gameOver.wav */,
 				700DE3311D42CED80087A007 /* PlayerExplosion.sks */,
 				700DE32F1D42CE040087A007 /* EnemyExplosion.sks */,
 				700DE32D1D42CB770087A007 /* spark.png */,
@@ -155,6 +158,7 @@
 			files = (
 				700DE3171D4199360087A007 /* GameScene.sks in Resources */,
 				700DE32E1D42CB770087A007 /* spark.png in Resources */,
+				700DE3381D4AD68B0087A007 /* gameOver.wav in Resources */,
 				700DE3361D4ACCAA0087A007 /* music.m4a in Resources */,
 				700DE3351D4ACCAA0087A007 /* explosion.wav in Resources */,
 				700DE3231D4199360087A007 /* LaunchScreen.storyboard in Resources */,
