@@ -38,6 +38,13 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         }
     }
     
+    var highScoreLabel: SKLabelNode!
+    var highScore = 0 {
+        didSet{
+            highScoreLabel.text = "HIGH SCORE: \(highScore)"
+        }
+    }
+    
     var startScreenLogo: SKSpriteNode!
     var gameOverLogo: SKSpriteNode!
     
@@ -48,7 +55,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         createSky()
         createBackground()
         createGround()
-        createScore()
+        createScores()
         createLogos()
         createMusic()
         
@@ -60,6 +67,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         physicsBody!.categoryBitMask = SceneEdgeCategory
         physicsBody!.contactTestBitMask = 0
         physicsBody!.collisionBitMask = PlayerCategory
+        
+        let defaults = NSUserDefaults.standardUserDefaults()
+        highScore = defaults.integerForKey("highScore")
     }
     
     override func touchesBegan(touches: Set<UITouch>, withEvent event: UIEvent?) {
@@ -68,6 +78,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             gameState = .Playing
             
             let fadeOut = SKAction.fadeOutWithDuration(0.5)
+            highScoreLabel.runAction(fadeOut)
+            
             let fadeOutSequence = SKAction.sequence([fadeOut, SKAction.removeFromParent()])
             startScreenLogo.runAction(fadeOutSequence)
             
@@ -120,17 +132,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             let sound = SKAction.playSoundFileNamed("explosion.wav", waitForCompletion: false)
             runAction(sound)
             
-            gameState = .Dead
-            gameOverLogo.alpha = 1
-            backgroundMusic.runAction(SKAction.stop())
-            
-            let gameOverSound = SKAction.playSoundFileNamed("gameOver.wav", waitForCompletion: false)
-            runAction(gameOverSound)
-            
-            motionManager.stopAccelerometerUpdates()
-            
-            player.removeFromParent()
-            speed = 0
+            gameOver()
+            determineHighScore()
         }
         
         if contact.bodyA.node?.name == "enemy" || contact.bodyB.node?.name == "enemy" {
@@ -160,6 +163,32 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             let sound = SKAction.playSoundFileNamed("explosion.wav", waitForCompletion: false)
             runAction(sound)
         }
+    }
+    
+    func gameOver() {
+        gameState = .Dead
+        gameOverLogo.alpha = 1
+        backgroundMusic.runAction(SKAction.stop())
+        
+        let gameOverSound = SKAction.playSoundFileNamed("gameOver.wav", waitForCompletion: false)
+        runAction(gameOverSound)
+        
+        motionManager.stopAccelerometerUpdates()
+        
+        player.removeFromParent()
+        speed = 0
+    }
+    
+    func determineHighScore() {
+        if score > highScore {
+            highScore = score
+            highScoreLabel.text = "NEW HIGH SCORE: \(highScore)"
+        }
+        
+        let defaults = NSUserDefaults.standardUserDefaults()
+        defaults.setInteger(highScore, forKey: "highScore")
+        
+        highScoreLabel.alpha = 1
     }
     
     func createPlayer() {
@@ -218,7 +247,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         let moveRand = GKRandomDistribution(lowestValue: moveMinY, highestValue: moveMaxY)
         let moveYPosition = CGFloat(moveRand.nextInt())
         
-        let moveAction = SKAction.moveTo(CGPoint(x: -enemyTexture.size().width - 10, y: moveYPosition), duration: 10)
+        let moveAction = SKAction.moveTo(CGPoint(x: -enemyTexture.size().width - 10, y: moveYPosition), duration: 8)
         let moveSequence = SKAction.sequence([moveAction, SKAction.removeFromParent()])
         
         enemy.runAction(moveSequence)
@@ -229,7 +258,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             self.createEnemy()
         }
         
-        let enemyWaitTime = SKAction.waitForDuration(5)
+        let enemyWaitTime = SKAction.waitForDuration(2)
         let enemyCreationSequence = SKAction.sequence([create, enemyWaitTime])
         let repeatForever = SKAction.repeatActionForever(enemyCreationSequence)
         
@@ -258,27 +287,37 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     }
     
     func createEnemyBullet() {
+        var allEnemies = [SKNode]()
+        
         let enemyBulletTexture = SKTexture(imageNamed: "enemyBullet")
         
         enumerateChildNodesWithName("enemy") { (node, stop) in
-            if node.position.x > self.frame.midX {
-                let enemyBullet = SKSpriteNode(texture: enemyBulletTexture)
-                enemyBullet.zPosition = 15
-                enemyBullet.position = CGPoint(x: node.position.x - (node.frame.size.width / 2), y: node.position.y)
-                enemyBullet.name = "enemyBullet"
+            allEnemies.append(node)
+            
+            if allEnemies.count > 0 {
+                let rand = GKRandomDistribution(lowestValue: 0, highestValue: allEnemies.count - 1)
+                let index = rand.nextInt()
+                let randEnemy = allEnemies[index]
                 
-                enemyBullet.physicsBody = SKPhysicsBody(texture: enemyBulletTexture, size: enemyBulletTexture.size())
-                enemyBullet.physicsBody!.dynamic = true
-                enemyBullet.physicsBody!.categoryBitMask = EnemyBulletCategory
-                enemyBullet.physicsBody!.contactTestBitMask = PlayerCategory
-                enemyBullet.physicsBody!.collisionBitMask = 0
-                
-                self.addChild(enemyBullet)
-                
-                let moveAction = SKAction.moveToX(-self.frame.width - enemyBullet.size.width, duration: 5)
-                let moveSequence = SKAction.sequence([moveAction, SKAction.removeFromParent()])
-                
-                enemyBullet.runAction(moveSequence)
+                if randEnemy.position.x > self.frame.midX {
+                    let enemyBullet = SKSpriteNode(texture: enemyBulletTexture)
+                    enemyBullet.zPosition = 15
+                    enemyBullet.position = CGPoint(x: randEnemy.position.x - (randEnemy.frame.size.width / 2), y: randEnemy.position.y)
+                    enemyBullet.name = "enemyBullet"
+                    
+                    enemyBullet.physicsBody = SKPhysicsBody(texture: enemyBulletTexture, size: enemyBulletTexture.size())
+                    enemyBullet.physicsBody!.dynamic = true
+                    enemyBullet.physicsBody!.categoryBitMask = EnemyBulletCategory
+                    enemyBullet.physicsBody!.contactTestBitMask = PlayerCategory
+                    enemyBullet.physicsBody!.collisionBitMask = 0
+                    
+                    self.addChild(enemyBullet)
+                    
+                    let moveAction = SKAction.moveToX(-self.frame.width - enemyBullet.size.width, duration: 5)
+                    let moveSequence = SKAction.sequence([moveAction, SKAction.removeFromParent()])
+                    
+                    enemyBullet.runAction(moveSequence)
+                }
             }
         }
     }
@@ -343,9 +382,10 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         }
     }
     
-    func createScore() {
+    func createScores() {
         scoreLabel = SKLabelNode(fontNamed: "Menlo-Bold")
         scoreLabel.fontSize = 20
+        scoreLabel.zPosition = 35
         
         scoreLabel.position = CGPoint(x: frame.midX, y: frame.maxY - 20)
         scoreLabel.horizontalAlignmentMode = .Center
@@ -353,6 +393,17 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         scoreLabel.fontColor = UIColor.blackColor()
         
         addChild(scoreLabel)
+        
+        highScoreLabel = SKLabelNode(fontNamed: "Menlo-Bold")
+        highScoreLabel.fontSize = 20
+        highScoreLabel.zPosition = 40
+        
+        highScoreLabel.position = CGPoint(x: frame.midX, y: frame.maxY - 50)
+        highScoreLabel.horizontalAlignmentMode = .Center
+        highScoreLabel.text = "HIGH SCORE: 0"
+        highScoreLabel.fontColor = UIColor.blackColor()
+        
+        addChild(highScoreLabel)
     }
     
     func createLogos() {
