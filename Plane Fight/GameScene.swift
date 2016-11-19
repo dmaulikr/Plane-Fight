@@ -11,9 +11,9 @@ import GameplayKit
 import CoreMotion
 
 enum GameState {
-    case ShowingLogo
-    case Playing
-    case Dead
+    case showingLogo
+    case playing
+    case dead
 }
 
 let PlayerCategory       : UInt32 = 0x1 << 0
@@ -48,9 +48,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     var startScreenLogo: SKSpriteNode!
     var gameOverLogo: SKSpriteNode!
     
-    var gameState = GameState.ShowingLogo
+    var gameState = GameState.showingLogo
     
-    override func didMoveToView(view: SKView) {
+    override func didMove(to view: SKView) {
         createPlayer()
         createSky()
         createBackground()
@@ -62,50 +62,50 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         physicsWorld.gravity = CGVector(dx: 0, dy: 0)
         physicsWorld.contactDelegate = self
         
-        physicsBody = SKPhysicsBody(edgeLoopFromRect: frame)
+        physicsBody = SKPhysicsBody(edgeLoopFrom: frame)
         physicsBody!.restitution = 0
         physicsBody!.categoryBitMask = SceneEdgeCategory
         physicsBody!.contactTestBitMask = 0
         physicsBody!.collisionBitMask = PlayerCategory
         
-        let defaults = NSUserDefaults.standardUserDefaults()
-        highScore = defaults.integerForKey("highScore")
+        let defaults = UserDefaults.standard
+        highScore = defaults.integer(forKey: "highScore")
     }
     
-    override func touchesBegan(touches: Set<UITouch>, withEvent event: UIEvent?) {
+    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         switch gameState {
-        case .ShowingLogo:
-            gameState = .Playing
+        case .showingLogo:
+            gameState = .playing
             
-            let fadeOut = SKAction.fadeOutWithDuration(0.5)
-            highScoreLabel.runAction(fadeOut)
+            let fadeOut = SKAction.fadeOut(withDuration: 0.5)
+            highScoreLabel.run(fadeOut)
             
             let fadeOutSequence = SKAction.sequence([fadeOut, SKAction.removeFromParent()])
-            startScreenLogo.runAction(fadeOutSequence)
+            startScreenLogo.run(fadeOutSequence)
             
             createEnemies()
             motionManager.startAccelerometerUpdates()
             
-        case .Playing:
+        case .playing:
             createPlayerBullet()
             
-        case .Dead:
+        case .dead:
             let scene = GameScene(fileNamed: "GameScene")!
-            scene.scaleMode = .ResizeFill
-            let transition = SKTransition.moveInWithDirection(.Right, duration: 0)
+            scene.scaleMode = .resizeFill
+            let transition = SKTransition.moveIn(with: .right, duration: 0)
             self.view?.presentScene(scene, transition: transition)
         }
     }
    
-    override func update(currentTime: CFTimeInterval) {
+    override func update(_ currentTime: TimeInterval) {
         guard player != nil else { return }
-        guard gameState == .Playing else { return }
+        guard gameState == .playing else { return }
         
         if let data = motionManager.accelerometerData {
             if fabs(data.acceleration.x) > 0.1 {
-                player.physicsBody!.applyForce(CGVectorMake(0, -50.0 * CGFloat(data.acceleration.x)))
+                player.physicsBody!.applyForce(CGVector(dx: 0, dy: -50.0 * CGFloat(data.acceleration.x)))
             } else {
-                 player.physicsBody!.velocity = CGVectorMake(0, 0)
+                 player.physicsBody!.velocity = CGVector(dx: 0, dy: 0)
             }
         }
         
@@ -116,7 +116,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         }
     }
     
-    func didBeginContact(contact: SKPhysicsContact) {
+    func didBegin(_ contact: SKPhysicsContact) {
         if contact.bodyA.node == player || contact.bodyB.node == player {
             if let playerExplosion = SKEmitterNode(fileNamed: "PlayerExplosion") {
                 playerExplosion.position = player.position
@@ -130,7 +130,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             }
             
             let sound = SKAction.playSoundFileNamed("explosion.wav", waitForCompletion: false)
-            runAction(sound)
+            run(sound)
             
             gameOver()
             determineHighScore()
@@ -161,17 +161,17 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             }
             
             let sound = SKAction.playSoundFileNamed("explosion.wav", waitForCompletion: false)
-            runAction(sound)
+            run(sound)
         }
     }
     
     func gameOver() {
-        gameState = .Dead
+        gameState = .dead
         gameOverLogo.alpha = 1
-        backgroundMusic.runAction(SKAction.stop())
+        backgroundMusic.run(SKAction.stop())
         
         let gameOverSound = SKAction.playSoundFileNamed("gameOver.wav", waitForCompletion: false)
-        runAction(gameOverSound)
+        run(gameOverSound)
         
         motionManager.stopAccelerometerUpdates()
         
@@ -185,8 +185,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             highScoreLabel.text = "NEW HIGH SCORE: \(highScore)"
         }
         
-        let defaults = NSUserDefaults.standardUserDefaults()
-        defaults.setInteger(highScore, forKey: "highScore")
+        let defaults = UserDefaults.standard
+        defaults.set(highScore, forKey: "highScore")
         
         highScoreLabel.alpha = 1
     }
@@ -198,7 +198,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         player.position = CGPoint(x: frame.width * 0.1, y: frame.height * 0.8)
         
         player.physicsBody = SKPhysicsBody(texture: playerTexture, size: playerTexture.size())
-        player.physicsBody!.dynamic = true
+        player.physicsBody!.isDynamic = true
         player.physicsBody!.restitution = 0
         player.physicsBody!.angularVelocity = 0
         player.physicsBody!.categoryBitMask = PlayerCategory
@@ -209,10 +209,10 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         
         let playerFrame2 = SKTexture(imageNamed: "player-2")
         let playerFrame3 = SKTexture(imageNamed: "player-3")
-        let playerAnimation = SKAction.animateWithTextures([playerTexture, playerFrame2, playerFrame3, playerFrame2], timePerFrame: 0.01)
-        let runForever = SKAction.repeatActionForever(playerAnimation)
+        let playerAnimation = SKAction.animate(with: [playerTexture, playerFrame2, playerFrame3, playerFrame2], timePerFrame: 0.01)
+        let runForever = SKAction.repeatForever(playerAnimation)
         
-        player.runAction(runForever)
+        player.run(runForever)
     }
     
     func createEnemy() {
@@ -228,7 +228,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         enemy.position = CGPoint(x: frame.width + enemyTexture.size().width, y: yPosition)
         
         enemy.physicsBody = SKPhysicsBody(texture: enemyTexture, size: enemyTexture.size())
-        enemy.physicsBody!.dynamic = true
+        enemy.physicsBody!.isDynamic = true
         enemy.physicsBody!.categoryBitMask = EnemyCategory
         enemy.physicsBody!.contactTestBitMask = PlayerCategory | PlayerBulletCategory
         enemy.physicsBody!.collisionBitMask = 0
@@ -237,32 +237,32 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         
         let enemyFrame2 = SKTexture(imageNamed: "enemy-2")
         let enemyFrame3 = SKTexture(imageNamed: "enemy-3")
-        let enemyAnimation = SKAction.animateWithTextures([enemyTexture, enemyFrame2, enemyFrame3, enemyFrame2], timePerFrame: 0.01)
-        let runForever = SKAction.repeatActionForever(enemyAnimation)
+        let enemyAnimation = SKAction.animate(with: [enemyTexture, enemyFrame2, enemyFrame3, enemyFrame2], timePerFrame: 0.01)
+        let runForever = SKAction.repeatForever(enemyAnimation)
         
-        enemy.runAction(runForever)
+        enemy.run(runForever)
         
         let moveMaxY = Int(frame.height - enemyTexture.size().height)
         let moveMinY = Int(enemyTexture.size().height * 2)
         let moveRand = GKRandomDistribution(lowestValue: moveMinY, highestValue: moveMaxY)
         let moveYPosition = CGFloat(moveRand.nextInt())
         
-        let moveAction = SKAction.moveTo(CGPoint(x: -enemyTexture.size().width - 10, y: moveYPosition), duration: 8)
+        let moveAction = SKAction.move(to: CGPoint(x: -enemyTexture.size().width - 10, y: moveYPosition), duration: 8)
         let moveSequence = SKAction.sequence([moveAction, SKAction.removeFromParent()])
         
-        enemy.runAction(moveSequence)
+        enemy.run(moveSequence)
     }
     
     func createEnemies() {
-        let create = SKAction.runBlock { [unowned self] in
+        let create = SKAction.run { [unowned self] in
             self.createEnemy()
         }
         
-        let enemyWaitTime = SKAction.waitForDuration(2)
+        let enemyWaitTime = SKAction.wait(forDuration: 2)
         let enemyCreationSequence = SKAction.sequence([create, enemyWaitTime])
-        let repeatForever = SKAction.repeatActionForever(enemyCreationSequence)
+        let repeatForever = SKAction.repeatForever(enemyCreationSequence)
         
-        runAction(repeatForever)
+        run(repeatForever)
     }
     
     func createPlayerBullet() {
@@ -273,17 +273,17 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         playerBullet.name = "playerBullet"
         
         playerBullet.physicsBody = SKPhysicsBody(texture: playerBulletTexture, size: playerBulletTexture.size())
-        playerBullet.physicsBody!.dynamic = true
+        playerBullet.physicsBody!.isDynamic = true
         playerBullet.physicsBody!.categoryBitMask = PlayerBulletCategory
         playerBullet.physicsBody!.contactTestBitMask = EnemyCategory
         playerBullet.physicsBody!.collisionBitMask = 0
         
         addChild(playerBullet)
         
-        let moveAction = SKAction.moveToX(frame.width + playerBullet.size.width, duration: 5)
+        let moveAction = SKAction.moveTo(x: frame.width + playerBullet.size.width, duration: 5)
         let moveSequence = SKAction.sequence([moveAction, SKAction.removeFromParent()])
         
-        playerBullet.runAction(moveSequence)
+        playerBullet.run(moveSequence)
     }
     
     func createEnemyBullet() {
@@ -291,7 +291,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         
         let enemyBulletTexture = SKTexture(imageNamed: "enemyBullet")
         
-        enumerateChildNodesWithName("enemy") { (node, stop) in
+        enumerateChildNodes(withName: "enemy") { (node, stop) in
             allEnemies.append(node)
             
             if allEnemies.count > 0 {
@@ -306,17 +306,17 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
                     enemyBullet.name = "enemyBullet"
                     
                     enemyBullet.physicsBody = SKPhysicsBody(texture: enemyBulletTexture, size: enemyBulletTexture.size())
-                    enemyBullet.physicsBody!.dynamic = true
+                    enemyBullet.physicsBody!.isDynamic = true
                     enemyBullet.physicsBody!.categoryBitMask = EnemyBulletCategory
                     enemyBullet.physicsBody!.contactTestBitMask = PlayerCategory
                     enemyBullet.physicsBody!.collisionBitMask = 0
                     
                     self.addChild(enemyBullet)
                     
-                    let moveAction = SKAction.moveToX(-self.frame.width - enemyBullet.size.width, duration: 5)
+                    let moveAction = SKAction.moveTo(x: -self.frame.width - enemyBullet.size.width, duration: 5)
                     let moveSequence = SKAction.sequence([moveAction, SKAction.removeFromParent()])
                     
-                    enemyBullet.runAction(moveSequence)
+                    enemyBullet.run(moveSequence)
                 }
             }
         }
@@ -344,16 +344,16 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         for i in 0 ... 1 {
             let background = SKSpriteNode(texture: backgroundTexture)
             background.zPosition = -30
-            background.anchorPoint = CGPointZero
+            background.anchorPoint = CGPoint.zero
             background.position = CGPoint(x: (backgroundTexture.size().width * CGFloat(i)) - CGFloat(1 * i), y: frame.height * 0.2)
             addChild(background)
             
-            let moveLeft = SKAction.moveByX(-backgroundTexture.size().width, y: 0, duration: 20)
-            let moveReset = SKAction.moveByX(backgroundTexture.size().width, y: 0, duration: 0)
+            let moveLeft = SKAction.moveBy(x: -backgroundTexture.size().width, y: 0, duration: 20)
+            let moveReset = SKAction.moveBy(x: backgroundTexture.size().width, y: 0, duration: 0)
             let moveLoop = SKAction.sequence([moveLeft, moveReset])
-            let moveForever = SKAction.repeatActionForever(moveLoop)
+            let moveForever = SKAction.repeatForever(moveLoop)
             
-            background.runAction(moveForever)
+            background.run(moveForever)
         }
     }
     
@@ -366,19 +366,19 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             ground.position = CGPoint(x: (groundTexture.size().width / 2 + (groundTexture.size().width * CGFloat(i))), y: groundTexture.size().height / 2)
             
             ground.physicsBody = SKPhysicsBody(texture: ground.texture!, size: ground.texture!.size())
-            ground.physicsBody!.dynamic = false
+            ground.physicsBody!.isDynamic = false
             ground.physicsBody!.categoryBitMask = GroundCategory
             ground.physicsBody!.contactTestBitMask = PlayerCategory
             ground.physicsBody!.collisionBitMask = 0
             
             addChild(ground)
             
-            let moveLeft = SKAction.moveByX(-groundTexture.size().width, y: 0, duration: 5)
-            let moveReset = SKAction.moveByX(groundTexture.size().width, y: 0, duration: 0)
+            let moveLeft = SKAction.moveBy(x: -groundTexture.size().width, y: 0, duration: 5)
+            let moveReset = SKAction.moveBy(x: groundTexture.size().width, y: 0, duration: 0)
             let moveLoop = SKAction.sequence([moveLeft, moveReset])
-            let moveForever = SKAction.repeatActionForever(moveLoop)
+            let moveForever = SKAction.repeatForever(moveLoop)
             
-            ground.runAction(moveForever)
+            ground.run(moveForever)
         }
     }
     
@@ -388,9 +388,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         scoreLabel.zPosition = 35
         
         scoreLabel.position = CGPoint(x: frame.midX, y: frame.maxY - 20)
-        scoreLabel.horizontalAlignmentMode = .Center
+        scoreLabel.horizontalAlignmentMode = .center
         scoreLabel.text = "SCORE: 0"
-        scoreLabel.fontColor = UIColor.blackColor()
+        scoreLabel.fontColor = UIColor.black
         
         addChild(scoreLabel)
         
@@ -399,9 +399,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         highScoreLabel.zPosition = 40
         
         highScoreLabel.position = CGPoint(x: frame.midX, y: frame.maxY - 50)
-        highScoreLabel.horizontalAlignmentMode = .Center
+        highScoreLabel.horizontalAlignmentMode = .center
         highScoreLabel.text = "HIGH SCORE: 0"
-        highScoreLabel.fontColor = UIColor.blackColor()
+        highScoreLabel.fontColor = UIColor.black
         
         addChild(highScoreLabel)
     }
@@ -420,8 +420,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     }
     
     func createMusic() {
-        if let musicURL = NSBundle.mainBundle().URLForResource("music", withExtension: "m4a") {
-            backgroundMusic = SKAudioNode(URL: musicURL)
+        if let musicURL = Bundle.main.url(forResource: "music", withExtension: "m4a") {
+            backgroundMusic = SKAudioNode(url: musicURL)
             addChild(backgroundMusic)
         }
     }
